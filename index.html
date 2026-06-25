@@ -1053,7 +1053,7 @@ input[type="number"]::-webkit-outer-spin-button {
 .pharm-srch-overlay.hidden{display:none;}
 
 
-.ph-search-ov{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+.ph-search-ov{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:250;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
 .ph-search-ov.hidden{display:none;}
 .ph-search-top{display:flex;align-items:center;gap:10px;padding:calc(var(--sat) + 10px) 14px 10px;background:var(--sur);border-bottom:1px solid var(--brd);flex-shrink:0;}
 .ph-search-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px;}
@@ -13833,7 +13833,7 @@ function _pharmCurrentStock(pharmId){
     }
     // خریدهای بعد از آخرین ویزیت اضافه کن
     const lastDate=lastV.date;
-    entries.filter(e=>e.type==='purchase'&&e.date>=lastDate).forEach(e=>{
+    entries.filter(e=>e.type==='purchase'&&e.date>lastDate).forEach(e=>{
       for(const item of (e.items||[])){
         const k=(item.product||'')+'|'+(item.dose||'');
         if(!stock[k])stock[k]={product:item.product,dose:item.dose,qty:0};
@@ -13958,7 +13958,7 @@ function openPharmSearch(){
 }
 
 function closePharmSearch(){
-  document.getElementById('pharmSearchOv')?.classList.add('hidden');
+  const _psOv=document.getElementById('pharmSearchOv');if(_psOv)_psOv.style.display='none';
 }
 
 function renderPharmSearchResults(q){
@@ -14042,6 +14042,7 @@ function openPharmCard(id){
   window._pharmCardId=id;
   const p=_pharmById(id);
   if(!p)return;
+  document.getElementById('pharmSearchOv')?.classList.add('hidden');
   const stock=_pharmCurrentStock(id);
   const entries=_pharmEntriesFor(id);
   const score=_pharmHealth(id);
@@ -14104,7 +14105,7 @@ function openPharmCard(id){
    <div class="mhandle" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:2"></div>
    <!-- Header -->
    <div style="background:var(--grad-pharm);padding:22px 18px 18px;position:relative;flex-shrink:0">
-    <button onclick="document.getElementById('pharmCardOv').remove()"  class="btn-icon-sm" style="position:absolute;top:14px;left:14px">✕</button>
+    <button onclick="document.getElementById('pharmCardOv').remove();var _s=document.getElementById('pharmSearchOv');if(_s)_s.style.display='';" class="btn-icon-sm" style="position:absolute;top:14px;left:14px">✕</button>
     <div style="display:flex;align-items:center;gap:12px">
      <div style="width:44px;height:44px;border-radius:var(--rmd);background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">${PHARM_ICON}</div>
      <div style="flex:1;min-width:0">
