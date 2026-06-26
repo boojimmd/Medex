@@ -10015,7 +10015,7 @@ function renderProductsEditor(containerId){
    </div>
   </div>`;
  }).join('')+`
-  <button onclick="addProduct()" style="background:none;border:1.5px dashed var(--brd);border-radius:var(--rs);padding:9px;width:100%;font-family:'Estedad','Vazirmatn',sans-serif;font-size:max(15px,.78rem);color:var(--sky);cursor:pointer;font-weight:700">+ افزودن محصول</button>
+  <button onclick="addProduct('${containerId}')" style="background:none;border:1.5px dashed var(--brd);border-radius:var(--rs);padding:9px;width:100%;font-family:'Estedad','Vazirmatn',sans-serif;font-size:max(15px,.78rem);color:var(--sky);cursor:pointer;font-weight:700">+ افزودن محصول</button>
  `;
 }
 function openStockEdit(prodIdx){
@@ -10072,13 +10072,15 @@ function confirmStockEdit(prodIdx,action){
  renderProductsEditor('profileProductsContainer');
  renderReport();
 }
-function addProduct(){
+function addProduct(containerId){
  profile.products.push('');
  saveProfile();
  renderProductsEditor('productsEditorContainer');
  renderProductsEditor('profileProductsContainer');
  setTimeout(()=>{
-  const inputs=document.querySelectorAll('[id^="prodInput"]');
+  // فقط ورودی داخل همان ادیتوری که کاربر روش کلیک کرد فوکوس بشه، نه ادیتور دیگه (که ممکنه پشت صفحه/مودال مخفی باشه)
+  const prefix=containerId==='profileProductsContainer'?'profProd':'prodInput';
+  const inputs=document.querySelectorAll(`[id^="${prefix}"]`);
   if(inputs.length)inputs[inputs.length-1].focus();
  },50);
 }
@@ -15767,18 +15769,23 @@ window.addEventListener('unhandledrejection',function(e){
  const root=document.documentElement;
  let _last=0,_t=null;
  function setVH(){
-  const h=window.innerHeight;
+  const h=window.visualViewport?.height||window.innerHeight;
   if(h===_last)return;
   _last=h;
   root.style.setProperty('--app-h',h+'px');
  }
  setVH(); // اجرای اولیه فوری
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>{clearTimeout(_t);_t=setTimeout(setVH,30);},{passive:true});
+  window.visualViewport.addEventListener('scroll',()=>{clearTimeout(_t);_t=setTimeout(setVH,30);},{passive:true});
+ }
  window.addEventListener('resize',()=>{clearTimeout(_t);_t=setTimeout(setVH,80);},{passive:true});
  window.addEventListener('orientationchange',()=>{clearTimeout(_t);_t=setTimeout(setVH,300);},{passive:true});
  if(/iPhone|iPad|iPod/.test(navigator.userAgent)){
   document.addEventListener('focusin',function(e){
    const tag=e.target.tagName;
-   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){
+   // ورودی‌های داخل مودال/استوری خودشان اسکرول می‌شوند — دست نزن، وگرنه مودال fixed با صفحه پشتش قاطی می‌شود
+   if((tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')&&!e.target.closest('.moverlay,.story-overlay')){
     setTimeout(()=>{
      try{e.target.scrollIntoView({behavior:'smooth',block:'center'});}catch(err){}
     },400);
@@ -15888,20 +15895,6 @@ async function _init(){
   setTimeout(_selfTest,1000);
  },500);
 }
-
-(function(){
- function _setVH(){
-  const h=(window.visualViewport?.height||window.innerHeight)+'px';
-  document.documentElement.style.setProperty('--app-h',h);
- }
- _setVH();
- if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',_setVH,{passive:true});
-  window.visualViewport.addEventListener('scroll',_setVH,{passive:true});
- }
- window.addEventListener('resize',_setVH,{passive:true});
- window.addEventListener('orientationchange',()=>setTimeout(_setVH,150),{passive:true});
-})();
 
 // ── Splash rotating messages ──
 (function(){
